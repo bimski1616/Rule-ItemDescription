@@ -197,7 +197,7 @@ def process_dataframe(df, col_name):
     processed['Item Description'] = processed[col_name]
     
     # Apply row-by-row (axis=1) because the function checks L1/L2/L3 as well
-    processed['Refined Milestone'] = processed.apply(categorize_item_refined, axis=1)
+    processed['Milestone'] = processed.apply(categorize_item_refined, axis=1)
 
     return processed
 
