@@ -256,23 +256,14 @@ if uploaded_file is not None:
             
             # Statistics
             st.subheader("3. Quick Stats")
-            col1, col2, col3, col4, col5, col6 = st.columns(6)
+            col1, col2, col3 = st.columns(3)
             with col1:
                 st.write("**Level 1 Service Type**")
                 st.write(result_df['Level 1 Service Type'].value_counts())
             with col2:
-                st.write("**Level 2 Category**")
-                st.write(result_df['Level 2 Category'].value_counts())
-            with col3:
-                st.write("**Level 3 Category**")
-                st.write(result_df['Level 3 Category'].value_counts())
-            with col4:
-                st.write("**Level 4 Unit**")
-                st.write(result_df['Level 4 Unit'].value_counts())
-            with col5:
                 st.write("**Level 5 Deployment Type**")
                 st.write(result_df['Level 5 Deployment Type'].value_counts())
-            with col6:
+            with col3:
                 st.write("**Milestone**")
                 st.write(result_df['Milestone'].value_counts())
 
