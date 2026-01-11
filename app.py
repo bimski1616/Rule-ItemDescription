@@ -256,7 +256,7 @@ if uploaded_file is not None:
             
             # Statistics
             st.subheader("3. Quick Stats")
-            col1, col2, col3 = st.columns(3)
+            col1, col2, col3, col4, col5, col6 = st.columns(3)
             with col1:
                 st.write("**Level 1 Service Type**")
                 st.write(result_df['Level 1 Service Type'].value_counts())
