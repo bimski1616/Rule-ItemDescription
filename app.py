@@ -4,7 +4,7 @@ import re
 import io
 
 # ==========================================
-# 1. LOGIC FUNCTIONS (Extracted from Notebook)
+# 1. CLEANING & LOGIC FUNCTIONS
 # ==========================================
 
 def clean_text(x):
@@ -27,269 +27,147 @@ def clean_text_2(x):
     x = re.sub(r'\s+', ' ', x).strip()
     return x
 
+# --- L1 to L5 Rules (Standard) ---
+
 def get_categorization_L1(item_desc_clean):
     text = str(item_desc_clean).lower()
-    
-    # 1. Specific User Overrides
     if "netgear re-tagging works on tower" in text: return 'Operation & Maintenance (MSS)'
     if "splicing and tracing core in existing closure" in text: return 'Operation & Maintenance (MSS)'
     if " ms " in text or text.startswith("ms ") or text.endswith(" ms"): return 'Operation & Maintenance (MSS)'
     if "rigger" in text: return 'Optimization & Network Management (RNO)'
     if "for new build" in text: return 'Installation-Test-Commissioning (TIN)'
-
-    # 2. Inbuilding Coverage Services (IBC)
-    if any(k in text for k in ['inbuilding', 'lampsite', 'ibs', 'das', 'small cell', 
-                            'repeater', 'prru', 'rhub', 'indoor antenna']):
-        return 'Inbuilding Coverage Services (IBC)'
-        
-    # 3. Optimization & Network Management (RNO)
-    if any(k in text for k in ['optimization', 'optimize', 'drive test', 'walk test', 
-                            'network performance', 'kpi', 'benchmark', 'npo', 'parameter', 
-                            'tuning', 'measurement', 'ssv', 'rno', 'rf adjustment', 
-                            'data collection', 'oss data', 'analysis', 'npi']):
-        return 'Optimization & Network Management (RNO)'
-    
-    # 4. Survey (ENG)
-    if any(k in text for k in ['survey', 'tssr', 'site audit', 'design', 'planning', 
-                            'los', 'site hunt', 'sid', 'drawing', 'desgin', 'boq', 'tagging', 
-                            'gps coordinate']):
-        return 'Survey (ENG)'
-    
-    # 5. Operation & Maintenance (MSS)
-    if any(k in text for k in ['maintenance', 'helpdesk', 'managed service', 'operation', 
-                            'repair', 'spare part', 'fault', 'fuel', 'genset', 'cleaning', 
-                            'rent', 'lease', 'bill', 'support', 'corrective', 'preventive', 
-                            'ms fee', 'monitoring', 'assurance', 'keeper', 'freon', 
-                            'refrigerant', 'rewinding', 'taskforce', 'site visit', 
-                            'good part', 'handling adhoc', 'purifikasi', 'bushing', 
-                            'contactor', 'oli', 'capacity allowance', 'seal', 'pressure suit']):
-        return 'Operation & Maintenance (MSS)'
-    
-    # 6. Default Fallback (TIN)
+    if any(k in text for k in ['inbuilding', 'lampsite', 'ibs', 'das', 'small cell', 'repeater', 'prru', 'rhub', 'indoor antenna']): return 'Inbuilding Coverage Services (IBC)'
+    if any(k in text for k in ['optimization', 'optimize', 'drive test', 'walk test', 'network performance', 'kpi', 'benchmark', 'npo', 'parameter', 'tuning', 'measurement', 'ssv', 'rno', 'rf adjustment', 'data collection', 'oss data', 'analysis', 'npi']): return 'Optimization & Network Management (RNO)'
+    if any(k in text for k in ['survey', 'tssr', 'site audit', 'design', 'planning', 'los', 'site hunt', 'sid', 'drawing', 'desgin', 'boq', 'tagging', 'gps coordinate']): return 'Survey (ENG)'
+    if any(k in text for k in ['maintenance', 'helpdesk', 'managed service', 'operation', 'repair', 'spare part', 'fault', 'fuel', 'genset', 'cleaning', 'rent', 'lease', 'bill', 'support', 'corrective', 'preventive', 'ms fee', 'monitoring', 'assurance', 'keeper', 'freon', 'refrigerant', 'rewinding', 'taskforce', 'site visit', 'good part', 'handling adhoc', 'purifikasi', 'bushing', 'contactor', 'oli', 'capacity allowance', 'seal', 'pressure suit']): return 'Operation & Maintenance (MSS)'
     return 'Installation-Test-Commissioning (TIN)'
 
 def get_categorization_L2(item_desc_clean_L2):
     text = str(item_desc_clean_L2).lower()
-    
-    # Priority 1: Material & Services (Combo items)
-    if any(k in text for k in ["supply & install", "supply and install", "supply&install",
-                            "provide & install", "provide and install", "supply & fix", 
-                            "supply and fix", "including wiring", "include wiring"]):
-        return "Material & Services"
-    
-    # Priority 2: Services Only (Action verbs and service tasks)
-    service_keywords = [
-        "installation", " install", "install ", "dismantle", "service", "survey", 
-        "optimize", "optimization", "maintenance", "manpower", "team", "visit", 
-        "test", "commissioning", "integration", "configuration", "audit", "design", 
-        "training", "consultancy", "logistic", "transport", "mobilization", "incentive", 
-        "return", "handling", "tagging", "splicing", "trench", "pulling", "roding", 
-        "construct", "drilling", "rewinding", "unwelding", "drawing", "documentation", 
-        "assurance", "monitoring", "analysis", "reporting", "tuning", "clearance", 
-        "keeper", "helpdesk", "managed service", "support", "verification", "collection", 
-        "induction", "registration", "rectification", "relocation", "replacement", 
-        "replace", "swap", "expansion", "upgrade", "implementation", "migration", 
-        "re-tagging", "trouble shooting", "cleaning", "rent", "lease", "bill", 
-        "purifikasi", "moving", "codeploy", "co-deploy", "works", "work",
-        "fusion", "los survey", "parameter", "adjustment", "rigger", "custimization",
-        "customization", "supervision", "atp", "bastian", "bast", "acceptance",
-        "compensation", "pick up", "fee", "allowance", "permit", "po for",
-        "document", "welding", "taskforce", "checking", "check", "oss", "walk test", 
-        "wt&oss", "pre-modernization", "modernization", "laying", "termination", 
-        "rearrangement", "pm package"
-    ]
-    if any(k in text for k in service_keywords):
-        return "Services Only"
-    if text.startswith("new:") or text.startswith("new-") or text.startswith("new "):
-        return "Services Only"
-        
-    # Priority 3: Material Supply (Default)
+    if any(k in text for k in ["supply & install", "supply and install", "supply&install", "provide & install", "provide and install", "supply & fix", "supply and fix", "including wiring", "include wiring"]): return "Material & Services"
+    service_keywords = ["installation", " install", "install ", "dismantle", "service", "survey", "optimize", "optimization", "maintenance", "manpower", "team", "visit", "test", "commissioning", "integration", "configuration", "audit", "design", "training", "consultancy", "logistic", "transport", "mobilization", "incentive", "return", "handling", "tagging", "splicing", "trench", "pulling", "roding", "construct", "drilling", "rewinding", "unwelding", "drawing", "documentation", "assurance", "monitoring", "analysis", "reporting", "tuning", "clearance", "keeper", "helpdesk", "managed service", "support", "verification", "collection", "induction", "registration", "rectification", "relocation", "replacement", "replace", "swap", "expansion", "upgrade", "implementation", "migration", "re-tagging", "trouble shooting", "cleaning", "rent", "lease", "bill", "purifikasi", "moving", "codeploy", "co-deploy", "works", "work", "fusion", "los survey", "parameter", "adjustment", "rigger", "custimization", "customization", "supervision", "atp", "bastian", "bast", "acceptance", "compensation", "pick up", "fee", "allowance", "permit", "po for", "document", "welding", "taskforce", "checking", "check", "oss", "walk test", "wt&oss", "pre-modernization", "modernization", "laying", "termination", "rearrangement", "pm package"]
+    if any(k in text for k in service_keywords): return "Services Only"
+    if text.startswith("new:") or text.startswith("new-") or text.startswith("new "): return "Services Only"
     return "Material Supply"
 
 def get_categorization_L3(item_desc_clean):
     text = str(item_desc_clean).lower()
-    
-    # 1. Incentive (Highest Priority)
     if "incentive" in text or "points" in text: return "Incentive"
-
-    # 2. Logistic
     if "logistic" in text or "return fault" in text or "good part" in text: return "Logistic"
-
-    # 3. Outside Plant (OSP)
     if any(k in text for k in ["pulling", "trench", "cable", "otb"]): return "Outside Plant (OSP)"
-
-    # 4. Power System
-    if any(k in text for k in ["power", "rectifier", "battery", "genset", "generator", 
-                            "ups", "inverter", "kwh", "mcb", "transformer", 
-                            "ac power", "dc power", "lv ", "hv ", "breaker", "busbar"]):
-        return "Power System"
-
-    # 5. Radio Access Network (RAN)
-    if any(k in text for k in ["ran", "radio", "bts", "nodeb", "enodeb", "gnodeb", 
-                            "sran", "base station", "rru", "aau", "bbu", "rfu", "trx", 
-                            "sector", "cell ", "cell-", "multi-sector", "antenna", 
-                            "feeder", "jumper", "cpri", "tma", "combiner", "diplexer", 
-                            "triplexer", "filter", "4g", "5g", "lte", "gul", "gsm", 
-                            "umts", "nr ", "nsa", " sa ", "drive test", "walk test", 
-                            "dt ", "ssv", "sso", "npi", "rno", "rf adjustment", 
-                            "parameter", "optimization", "tuning", "network performance", 
-                            "kpi", "rigger", "inbuilding", "ibs", "das", "lampsite", 
-                            "small cell", "repeater", "prru", "rhub", "mocn", "roaming", 
-                            "neighbor", "blind spot", "coverage", "distribution aerial", 
-                            "feeder aerial", "service operation center", "remote radio unit"]):
-        return "Radio Access Network (RAN)"
-
-    # 6. Transmission (TRM)
-    if any(k in text for k in ["microwave", " mw ", " mw-", "-mw", "odu", "idu", 
-                            "transmission", "trm", "backhaul", "per hop", "optical", 
-                            "fiber", "fibre", " fo ", "ftth", "fbb", "osp", "isp", 
-                            "olt", "ont", "gpon", "wdm", "mstp", "sdh", "dwdm", 
-                            "otn", "ptn", "datacomm", "router", "switch", "ip ne", 
-                            "ip_ne", "peering", "splicing", "roding", "duct", "aerial", 
-                            "underground", "odf", "patch cord", "fat ", "fdt ", "closure",
-                            "lan ", "cat 6", "cat6", "metro", "ethernet", "access,olt",
-                            "access,blade", "access,rack", "wdm/mstp"]):
-        return "Transmission (TRM)"
-
-    # 7. Core Network (CORE)
-    if any(k in text for k in ["core network", " msc", " hlr", " hss", " epc", " mme", 
-                            " sgsn", " ggsn", " ims", " volte", "cs core", "ps core", 
-                            "packet core", "udm", "ausf", "amf", "smf", "upf", "pcrf", 
-                            "dra", "stp", "sbc", "mgw", "softswitch", "media gateway", 
-                            "signaling", "user plane", "control plane", "charging system", 
-                            "ocs", "pcc", "cs helpdesk", "core site"]):
-        return "Core Network (CORE)"
-
-    # 8. Supporting Facility (CME)
-    if any(k in text for k in ["cme", "ac ", "dc ", "air conditioner", "conditioning", 
-                            "pac ", "split ac", "cooling", "cabinet", "shelter", 
-                            "enclosure", "rack", "cage", "pole", "tower", "monopole", 
-                            "guyed", "civil", "grounding", "lightning", "arrester", 
-                            "protection", "fuel", "tank", "sensor", "mechanical", 
-                            "electrical", "concrete", "foundation", "fence", "tray", 
-                            "ladder", "bracket", "mounting", "clamp", "bolt", "nut", 
-                            "anchor", "pipe", "conduit", "trunking", "seal", "cement", 
-                            "sand", "gravel", "macadam", "renovation", "refurbishment", 
-                            "cleaning", "site keeper", "security", "freon", "oil", 
-                            "lubricant", "pump", "valve", "compressor", "bushing", 
-                            "contactor", "mecanical", "pressure suit", "reinstatement", 
-                            "welding", "drilling", "hole", "anti theft", "atd", "lug", 
-                            "scun", "connector"]):
-        return "Supporting Facility (CME)"
-        
-    # 9. General Support (Default)
+    if any(k in text for k in ["power", "rectifier", "battery", "genset", "generator", "ups", "inverter", "kwh", "mcb", "transformer", "ac power", "dc power", "lv ", "hv ", "breaker", "busbar"]): return "Power System"
+    if any(k in text for k in ["ran", "radio", "bts", "nodeb", "enodeb", "gnodeb", "sran", "base station", "rru", "aau", "bbu", "rfu", "trx", "sector", "cell ", "cell-", "multi-sector", "antenna", "feeder", "jumper", "cpri", "tma", "combiner", "diplexer", "triplexer", "filter", "4g", "5g", "lte", "gul", "gsm", "umts", "nr ", "nsa", " sa ", "drive test", "walk test", "dt ", "ssv", "sso", "npi", "rno", "rf adjustment", "parameter", "optimization", "tuning", "network performance", "kpi", "rigger", "inbuilding", "ibs", "das", "lampsite", "small cell", "repeater", "prru", "rhub", "mocn", "roaming", "neighbor", "blind spot", "coverage", "distribution aerial", "feeder aerial", "service operation center", "remote radio unit"]): return "Radio Access Network (RAN)"
+    if any(k in text for k in ["microwave", " mw ", " mw-", "-mw", "odu", "idu", "transmission", "trm", "backhaul", "per hop", "optical", "fiber", "fibre", " fo ", "ftth", "fbb", "osp", "isp", "olt", "ont", "gpon", "wdm", "mstp", "sdh", "dwdm", "otn", "ptn", "datacomm", "router", "switch", "ip ne", "ip_ne", "peering", "splicing", "roding", "duct", "aerial", "underground", "odf", "patch cord", "fat ", "fdt ", "closure", "lan ", "cat 6", "cat6", "metro", "ethernet", "access,olt", "access,blade", "access,rack", "wdm/mstp"]): return "Transmission (TRM)"
+    if any(k in text for k in ["core network", " msc", " hlr", " hss", " epc", " mme", " sgsn", " ggsn", " ims", " volte", "cs core", "ps core", "packet core", "udm", "ausf", "amf", "smf", "upf", "pcrf", "dra", "stp", "sbc", "mgw", "softswitch", "media gateway", "signaling", "user plane", "control plane", "charging system", "ocs", "pcc", "cs helpdesk", "core site"]): return "Core Network (CORE)"
+    if any(k in text for k in ["cme", "ac ", "dc ", "air conditioner", "conditioning", "pac ", "split ac", "cooling", "cabinet", "shelter", "enclosure", "rack", "cage", "pole", "tower", "monopole", "guyed", "civil", "grounding", "lightning", "arrester", "protection", "fuel", "tank", "sensor", "mechanical", "electrical", "concrete", "foundation", "fence", "tray", "ladder", "bracket", "mounting", "clamp", "bolt", "nut", "anchor", "pipe", "conduit", "trunking", "seal", "cement", "sand", "gravel", "macadam", "renovation", "refurbishment", "cleaning", "site keeper", "security", "freon", "oil", "lubricant", "pump", "valve", "compressor", "bushing", "contactor", "mecanical", "pressure suit", "reinstatement", "welding", "drilling", "hole", "anti theft", "atd", "lug", "scun", "connector"]): return "Supporting Facility (CME)"
     return "General Support"
 
 def get_categorization_L4(item_desc_clean_L2):
     text = str(item_desc_clean_L2).lower()
-    if "man-month" in text or "man month" in text or "*month" in text or " month" in text:
-        return "Man-month"
-    if "team" in text:
-        return "Team"
-    if "/site" in text or "per site" in text:
-        return "Site"
-    if "/hop" in text or "per hop" in text or " hop" in text:
-        return "Hop"
-    if "/each" in text or "pcs" in text or "per point" in text:
-        return "Each"
-    return "Each" # Default
+    if "man-month" in text or "man month" in text or "*month" in text or " month" in text: return "Man-month"
+    if "team" in text: return "Team"
+    if "/site" in text or "per site" in text: return "Site"
+    if "/hop" in text or "per hop" in text or " hop" in text: return "Hop"
+    if "/each" in text or "pcs" in text or "per point" in text: return "Each"
+    return "Each"
 
 def get_categorization_L5(item_desc_clean):
     text = str(item_desc_clean).lower()
-
-    # 1. HARD EXCEPTION (Highest Priority)
-    if "rectification and expansion" in text:
-        return "Swap/Replacement"
-
-    # 2. SUPPORT
-    support_keywords = [
-        'per point', 'allowance', 'incentive',
-        'return fault', 'return good part', 'good part',
-        'compensation', 'logistic from', 'self pick up', 'handling',
-        'rigger', 'visit', 'document', 'coordinate', 'gps',
-        'aos', 'project service', 
-        'access registration', 'induction', 'team induction', 
-        'restricted mining', 'special event', 'assurance', 
-        'npi', 'taskforce'
-    ]
-    if any(k in text for k in support_keywords):
-        return "Support"
-
-    # 3. OPTIMIZATION & PERFORMANCE MANAGEMENT
-    optimization_keywords = [
-        'optimization', 'performance', 'tuning', 'audit', 'ssv', 'sso',
-        'dt', 'drive test', 'npx', 'network performance', 'kpi', 'monitor',
-        'collection', 'verification', 'adjustment', 'acceptance', 'benchmark',
-        'parameters and neighboring cell', 'analysis and report',
-        'quality management', 'neighboring cell scripts', 'without car',
-        'walk test',
-        'iro_ethernet configuration', 'iro_fbb common', 'iro_mw idu',
-        'tsel_gul_rf_rigger', 'xl_gul_merge_rf_rigger',
-        'xl_gul_rf_rigger', 'ioh_gul_rf_rigger', 'otdr', 'fiber quality', 
-        'board testing', 'antenna checking', 'light indicator', 'idu', 'odu', 'bbu', 'rru',
-    ]
-    if any(k in text for k in optimization_keywords):
-        return "Optimization & Performance Management"
-
-    # 4. MAINTENANCE SERVICES
-    maintenance_keywords = [
-        'maintenance', 'trouble shooting', 'troubleshooting', 'repair',
-        'corrective', 'preventive', 'spare part', 'spare', 'rectification',
-        'fixing', 'warranty', 'helpdesk', 'support', 'ticket', 'complain',
-        'service operation center', 'soc', 'alarm clearance', 'tagging',
-        'reinstatement', 'site keeper', 'managed service',
-        'shopping list package', 'shopping list',
-        'refrigerant', 'refrigerant freon', 'refrigerant r22', 'refrigerant r407c',
-        'pressure suit', 'purifikasi', 'rewinding', 'rewelding',
-        'split ac', 'trench & backfill', 'xl ms lumpsum shopping list', 
-        'cell down', 'p1', 'unwelding'
-    ]
-    if any(k in text for k in maintenance_keywords):
-        return "Maintenance Services"
-
-    # 5. SWAP / REPLACEMENT (GENERAL)
-    swap_keywords = [
-        'swap', 'replace', 'replacement', 'migration', 'modernization',
-        'relocation', 're-arrangement', 'rearrange', 're-configuration'
-    ]
-    if any(k in text for k in swap_keywords):
-        return "Swap/Replacement"
-
-    # 6. DISMANTLING
-    dismantle_keywords = [
-        'dismantle', 'dismantlement', 'removal', 'remove',
-        'de-installation', 'return'
-    ]
-    if any(k in text for k in dismantle_keywords):
-        return "Dismantling"
-
-    # 7. ADDITIONAL / UPGRADE
-    upgrade_keywords = [
-        'expansion', 'upgrade', 'capacity', 'add-on',
-        'augment', 'growth', 'extension', 'license'
-    ]
-    if any(k in text for k in upgrade_keywords):
-        return "Additional/Upgrade"
-
-    # 8. NEW DEPLOYMENT
-    deployment_keywords = [
-        'new', 'installation', 'install', 'commissioning', 'integration',
-        'survey', 'deployment', 'rollout', 'implement', 'implementation',
-        'setup', 'construct', 'civil work', 'supply', 'material',
-        'pipe', 'cable', 'pole', 'bracket', 'connector', 'adapter',
-        'feeder', 'clamp', 'cabinet', 'rack', 'power', 'battery',
-        'concrete', 'conduit', 'splicing', 'fusion', 'device',
-        'drawing', 'dummy load', 'contactor',
-        'jumper', 'kabel', 'mcb', 'rod', 'bushing', 'seal',
-        'ties', 'module', 'lamp', 'trafo', 'mechanical',
-        'oli', 'otb', 'patch cord', 'pipa', 'pvc',
-        'tape', 'rhub box', 'codeploy', 'insert'
-    ]
-    if any(k in text for k in deployment_keywords):
-        return "New Deployment"
-
-    # 9. FALLBACK
+    if "rectification and expansion" in text: return "Swap/Replacement"
+    if any(k in text for k in ['per point', 'allowance', 'incentive', 'return fault', 'return good part', 'good part', 'compensation', 'logistic from', 'self pick up', 'handling', 'rigger', 'visit', 'document', 'coordinate', 'gps', 'aos', 'project service', 'access registration', 'induction', 'team induction', 'restricted mining', 'special event', 'assurance', 'npi', 'taskforce']): return "Support"
+    if any(k in text for k in ['optimization', 'performance', 'tuning', 'audit', 'ssv', 'sso', 'dt', 'drive test', 'npx', 'network performance', 'kpi', 'monitor', 'collection', 'verification', 'adjustment', 'acceptance', 'benchmark', 'parameters and neighboring cell', 'analysis and report', 'quality management', 'neighboring cell scripts', 'without car', 'walk test', 'iro_ethernet configuration', 'iro_fbb common', 'iro_mw idu', 'tsel_gul_rf_rigger', 'xl_gul_merge_rf_rigger', 'xl_gul_rf_rigger', 'ioh_gul_rf_rigger', 'otdr', 'fiber quality', 'board testing', 'antenna checking', 'light indicator', 'idu', 'odu', 'bbu', 'rru']): return "Optimization & Performance Management"
+    if any(k in text for k in ['maintenance', 'trouble shooting', 'troubleshooting', 'repair', 'corrective', 'preventive', 'spare part', 'spare', 'rectification', 'fixing', 'warranty', 'helpdesk', 'support', 'ticket', 'complain', 'service operation center', 'soc', 'alarm clearance', 'tagging', 'reinstatement', 'site keeper', 'managed service', 'shopping list package', 'shopping list', 'refrigerant', 'refrigerant freon', 'refrigerant r22', 'refrigerant r407c', 'pressure suit', 'purifikasi', 'rewinding', 'rewelding', 'split ac', 'trench & backfill', 'xl ms lumpsum shopping list', 'cell down', 'p1', 'unwelding']): return "Maintenance Services"
+    if any(k in text for k in ['swap', 'replace', 'replacement', 'migration', 'modernization', 'relocation', 're-arrangement', 'rearrange', 're-configuration']): return "Swap/Replacement"
+    if any(k in text for k in ['dismantle', 'dismantlement', 'removal', 'remove', 'de-installation', 'return']): return "Dismantling"
+    if any(k in text for k in ['expansion', 'upgrade', 'capacity', 'add-on', 'augment', 'growth', 'extension', 'license']): return "Additional/Upgrade"
+    if any(k in text for k in ['new', 'installation', 'install', 'commissioning', 'integration', 'survey', 'deployment', 'rollout', 'implement', 'implementation', 'setup', 'construct', 'civil work', 'supply', 'material', 'pipe', 'cable', 'pole', 'bracket', 'connector', 'adapter', 'feeder', 'clamp', 'cabinet', 'rack', 'power', 'battery', 'concrete', 'conduit', 'splicing', 'fusion', 'device', 'drawing', 'dummy load', 'contactor', 'jumper', 'kabel', 'mcb', 'rod', 'bushing', 'seal', 'ties', 'module', 'lamp', 'trafo', 'mechanical', 'oli', 'otb', 'patch cord', 'pipa', 'pvc', 'tape', 'rhub box', 'codeploy', 'insert']): return "New Deployment"
     return "Others"
+
+# --- NEW: REFINED CATEGORIZATION RULE (Milestone Mapping) ---
+
+def categorize_item_refined(row):
+    """
+    Advanced categorization rule for Telecom BOQ items.
+    """
+    # 1. PRE-PROCESSING
+    desc = str(row.get('Item Description', '')).lower()
+    l1 = str(row.get('Level 1 Service Type', '')).lower()
+    l2 = str(row.get('Level 2 Category', '')).lower()
+    l3 = str(row.get('Level 3 Category', '')).lower()
+
+    # --- PHASE 1: EXACT & HIGH PRIORITY MATCHES ---
+    if 'netgear' in desc: return 'netgear_l1'
+    if 'sir' in desc: return 'm-09_sir_approved'
+    if 'rfi' in desc: return 'm-03_rfi'
+
+    if 'dismantle' in desc or 'dismantlement' in desc or 'decommission' in desc:
+        return 'm-08_dismantle'
+
+    logistics_keywords = ['transport', 'logistic', 'delivery', 'cargo', 'truck', 
+                          'pick up', 'trip', 'distance', 'mobilization']
+    if any(k in desc for k in logistics_keywords):
+        return 'sa-logistic(te)'
+
+    doc_keywords = ['pac', 'bast', 'documentation', 'acceptance', 'handover', 
+                    'aos-', 'project service', 'admin', 'management fee']
+    if any(k in desc for k in doc_keywords):
+        return 'm-12_pac_approved'
+
+    # --- PHASE 2: HARD CATEGORY CHECKS ---
+    if 'material' in l2:
+        return 'm-04_mos'
+
+    if 'rno' in l1 or 'optimization' in l1:
+        return 'm-07_on_air'
+
+    # --- PHASE 3: KEYWORD REFINEMENT ---
+    if any(k in desc for k in ['survey', 'drawing', 'boq', 'design', 'as plan', 'as built']):
+        return 'm-01_site_survey'
+    if 'visit' in desc: 
+        return 'sa-site_visit(te)'
+
+    if 'atp' in desc:
+        if 'cme' in desc or 'cme' in l3: return 'm-03a_atp_cme'
+        if 'pln' in desc: return 'm-03b_atp_pln'
+        return 'm-10_atp_approved'
+    if any(k in desc for k in ['qc', 'quality', 'assessment', 'audit']):
+        return 'm-05a_sv_qc'
+
+    if any(k in desc for k in ['trouble', 'maintenance', 'helpdesk', 'repair', 'corrective']):
+        return 'm-06a_troubleshooting'
+
+    on_air_keywords = ['optimization', 'performance', 'dt ', 'drive test', 'oss', 
+                       'tuning', 'analysis', 'complain', 'verification', 'npx']
+    if any(k in desc for k in on_air_keywords):
+        return 'm-07_on_air'
+    if 'integration' in desc:
+        return 'm-06_integrated'
+
+    mos_keywords = ['pipe', 'cable', 'pole', 'panel', 'rectifier', 'battery', 'conduit', 
+                    'connector', 'jumper', 'splitter', 'attenuator', 'accessories', 
+                    'clamp', 'bolt', 'nut', 'module', 'unit', 'rack', 'cabinet', 'concrete']
+    if any(k in desc for k in mos_keywords):
+        return 'm-04_mos'
+
+    if any(k in desc for k in ['construct', 'drilling', 'hole', 'wall', 'civil', 'foundation']):
+        return 'm-03a_atp_cme'
+
+    install_keywords = ['installation', 'install', 'mounting', 'fiber', 'fusion', 
+                        'splicing', 'cabling', 'laying', 'codeploy', 'mw 0.9', 'mw 1.2']
+    if any(k in desc for k in install_keywords):
+        return 'm-05_installation-completed'
+    
+    if 'installation' in l1 or 'ibc' in l1:
+        return 'm-05_installation-completed'
+
+    # --- PHASE 4: MANPOWER & INCENTIVES ---
+    if any(k in desc for k in ['supervisor', 'spv', 'rigger', 'manpower', 'team']):
+        return 'sa-site_spv'
+
+    if any(k in desc for k in ['incentive', 'allowance', 'bonus']):
+        return 'sa-productivity_incentive'
+
+    return 'sa-productivity_incentive'
 
 # ==========================================
 # 2. MAIN PROCESSING WRAPPER
@@ -306,13 +184,21 @@ def process_dataframe(df, col_name):
     # 2. Clean Text for L2, L4
     processed['item_desc_clean_L2'] = processed[col_name].apply(clean_text_2)
     
-    # 3. Apply Logic
+    # 3. Apply Basic Rules
     processed['Level 1 Service Type'] = processed['item_desc_clean'].apply(get_categorization_L1)
     processed['Level 2 Category'] = processed['item_desc_clean_L2'].apply(get_categorization_L2)
     processed['Level 3 Category'] = processed['item_desc_clean'].apply(get_categorization_L3)
     processed['Level 4 Unit'] = processed['item_desc_clean_L2'].apply(get_categorization_L4)
     processed['Level 5 Deployment Type'] = processed['item_desc_clean'].apply(get_categorization_L5)
     
+    # 4. Apply NEW Refined Milestone Rule
+    # Ensure the column 'Item Description' exists for the function to read, 
+    # regardless of what the user selected in the dropdown.
+    processed['Item Description'] = processed[col_name]
+    
+    # Apply row-by-row (axis=1) because the function checks L1/L2/L3 as well
+    processed['Refined Milestone'] = processed.apply(categorize_item_refined, axis=1)
+
     return processed
 
 def convert_df_to_csv(df):
@@ -328,11 +214,13 @@ def convert_df_to_excel(df):
 # 3. STREAMLIT UI
 # ==========================================
 
-st.set_page_config(page_title="Item Categorizer (L1-L5)", layout="wide")
+st.set_page_config(page_title="Item Categorizer (L1-Refined)", layout="wide")
 
 st.title("📂 Item Description Auto-Categorizer")
 st.markdown("""
-This tool automates the categorization of item descriptions into **5 Levels** (Service Type, Category, Equipment, Unit, Deployment).
+This tool automates the categorization of item descriptions into:
+* **Levels 1-5** (Service Type, Category, Equipment, Unit, Deployment)
+* **Refined Milestone** (Specific Activity Code mapping)
 """)
 
 # --- Sidebar ---
@@ -360,7 +248,7 @@ if uploaded_file is not None:
         
         # Process Button
         if st.button("Run Categorization"):
-            with st.spinner('Processing rules L1 through L5...'):
+            with st.spinner('Processing rules L1 through Refined Milestone...'):
                 result_df = process_dataframe(df, target_col)
                 
             st.subheader("2. Preview Results")
@@ -370,14 +258,14 @@ if uploaded_file is not None:
             st.subheader("3. Quick Stats")
             col1, col2, col3 = st.columns(3)
             with col1:
-                st.write("**Level 1 Distribution**")
+                st.write("**Level 1 Service Type**")
                 st.write(result_df['Level 1 Service Type'].value_counts())
             with col2:
-                st.write("**Level 3 Distribution**")
-                st.write(result_df['Level 3 Category'].value_counts())
-            with col3:
-                st.write("**Level 5 Distribution**")
+                st.write("**Level 5 Deployment Type**")
                 st.write(result_df['Level 5 Deployment Type'].value_counts())
+            with col3:
+                st.write("**Milestone**")
+                st.write(result_df['Refined Milestone'].value_counts())
 
             # Download Section
             st.subheader("4. Download Data")
@@ -389,7 +277,7 @@ if uploaded_file is not None:
             col_d1.download_button(
                 label="📥 Download as CSV",
                 data=csv_data,
-                file_name='Categorized_Items.csv',
+                file_name='Categorized_Items_Refined.csv',
                 mime='text/csv',
             )
             
@@ -398,7 +286,7 @@ if uploaded_file is not None:
             col_d2.download_button(
                 label="📥 Download as Excel",
                 data=excel_data,
-                file_name='Categorized_Items.xlsx',
+                file_name='Categorized_Items_Refined.xlsx',
                 mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             )
             
@@ -407,12 +295,3 @@ if uploaded_file is not None:
 
 else:
     st.info("👈 Please upload a CSV or Excel file from the sidebar to begin.")
-    st.markdown("### Expected Input Format")
-    st.markdown("A file containing at least one column with item descriptions, e.g.:")
-    st.dataframe(pd.DataFrame({
-        "Item Description": [
-            "1 HDPE pipe 20mm OD, 2mm WT",
-            "1-3 AAU installation(not on tower)-/site",
-            "TSEL service package 2025 JABO"
-        ]
-    }))
