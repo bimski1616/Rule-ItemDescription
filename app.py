@@ -220,7 +220,7 @@ st.title("📂 Item Description Auto-Categorizer")
 st.markdown("""
 This tool automates the categorization of item descriptions into:
 * **Levels 1-5** (Service Type, Category, Equipment, Unit, Deployment)
-* **Refined Milestone** (Specific Activity Code mapping)
+* **Milestone** (Specific Activity Code mapping)
 """)
 
 # --- Sidebar ---
@@ -248,7 +248,7 @@ if uploaded_file is not None:
         
         # Process Button
         if st.button("Run Categorization"):
-            with st.spinner('Processing rules L1 through Refined Milestone...'):
+            with st.spinner('Processing rules L1 through Milestone...'):
                 result_df = process_dataframe(df, target_col)
                 
             st.subheader("2. Preview Results")
@@ -261,11 +261,20 @@ if uploaded_file is not None:
                 st.write("**Level 1 Service Type**")
                 st.write(result_df['Level 1 Service Type'].value_counts())
             with col2:
+                st.write("**Level 2 Category**")
+                st.write(result_df['Level 2 Category'].value_counts())
+            with col3:
+                st.write("**Level 3 Category**")
+                st.write(result_df['Level 3 Category'].value_counts())
+            with col4:
+                st.write("**Level 4 Unit**")
+                st.write(result_df['Level 4 Unit'].value_counts())
+            with col5:
                 st.write("**Level 5 Deployment Type**")
                 st.write(result_df['Level 5 Deployment Type'].value_counts())
-            with col3:
+            with col6:
                 st.write("**Milestone**")
-                st.write(result_df['Refined Milestone'].value_counts())
+                st.write(result_df['Milestone'].value_counts())
 
             # Download Section
             st.subheader("4. Download Data")
